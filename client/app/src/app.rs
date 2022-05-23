@@ -8,7 +8,7 @@ cfg_if! {
     }
 }
 
-use naia_client_socket::{Packet, PacketReceiver, PacketSender, ServerAddr, Socket, Timer};
+use naia_client_socket::{ PacketReceiver, PacketSender, ServerAddr, Socket};
 
 use naia_socket_docker_example_shared::{get_shared_config, PING_MSG, PONG_MSG};
 
@@ -25,8 +25,9 @@ impl App {
 
         let shared_config = get_shared_config();
 
-        let mut socket = Socket::new(shared_config);
-        socket.connect("http://192.168.1.7:14191");
+        let mut socket = Socket::new(&shared_config);
+        socket.connect("http://192.168.0.107:14191");
+        // socket.connect("http://127.0.0.1:14191");
 
         App {
             packet_sender: socket.packet_sender(),
@@ -40,7 +41,7 @@ impl App {
         match self.packet_receiver.receive() {
             Ok(event) => match event {
                 Some(packet) => {
-                    let message_from_server = String::from_utf8_lossy(packet.payload());
+                    let message_from_server = String::from_utf8_lossy(packet);
 
                     let server_addr = match self.packet_receiver.server_addr() {
                         ServerAddr::Found(addr) => addr.to_string(),
@@ -64,8 +65,10 @@ impl App {
                             };
                             info!("Client send -> {}: {}", server_addr, message_to_server);
 
-                            self.packet_sender
-                                .send(Packet::new(message_to_server.into_bytes()));
+                            // self.packet_sender
+                            //     .send(Packet::new(message_to_server.into_bytes()));
+                            self.packet_sender.send(message_to_server.as_bytes());
+
                         }
                     }
                 }
